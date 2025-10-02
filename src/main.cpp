@@ -1,18 +1,44 @@
 #include <Arduino.h>
+#include <OneButton.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#define LED_PIN 4
+#define BUTTON_PIN 35
+
+OneButton button(BUTTON_PIN, true);
+
+bool ledState = false;
+bool blinking = false;
+unsigned long lastBlink = 0;
+
+void singleClick() {
+  blinking = false;             // tắt nhấp nháy nếu đang bật
+  ledState = !ledState;         // đổi trạng thái LED
+  digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+}
+
+void doubleClick() {
+  blinking = !blinking;         // bật/tắt chế độ nhấp nháy
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  button.attachClick(singleClick);
+  button.attachDoubleClick(doubleClick);
+
+  Serial.begin(115200);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
+  button.tick();
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  if (blinking) {
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastBlink >= 500) {
+      lastBlink = currentMillis;
+      ledState = !ledState;
+      digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+    }
+  }
 }
