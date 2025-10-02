@@ -1,48 +1,35 @@
-# Dự án điều khiển LED bằng nút nhấn sử dụng thư viện OneButton
+# Dự án điều khiển LED với nút nhấn sử dụng thư viện OneButton
 
 ## 1. Giới thiệu
-Dự án này minh họa cách sử dụng **ESP32** (hoặc Arduino) kết hợp với thư viện **OneButton** để điều khiển LED bằng một nút nhấn duy nhất.  
-Chúng ta có thể thực hiện nhiều chức năng khác nhau dựa trên **cách bấm nút** (single click, double click).
+Trong ví dụ này, chúng ta sẽ sử dụng **ESP32** (hoặc có thể thay bằng Arduino Uno/Nano/MEGA) kết hợp với thư viện **OneButton** để điều khiển LED thông qua một nút nhấn duy nhất.  
+Nhờ thư viện này, chỉ với 1 nút bấm ta có thể tạo ra nhiều chức năng khác nhau như **nhấn 1 lần (single click)** hoặc **nhấn 2 lần (double click)**.
 
-## 2. Yêu cầu phần cứng
-- 01 board ESP32 (hoặc Arduino Uno/Nano/MEGA).
-- 01 LED rời (không dùng LED tích hợp).
-- 01 điện trở 220Ω – 330Ω (dùng hạn dòng cho LED).
-- 01 nút nhấn (button).
-- Dây nối Breadboard.
+## 2. Phần cứng cần chuẩn bị
+- 01 bo mạch ESP32 hoặc Arduino tương đương.  
+- 01 đèn LED rời (không sử dụng LED tích hợp sẵn trên board).  
+- 01 điện trở 220Ω – 330Ω để hạn dòng cho LED.  
+- 01 nút nhấn (button).  
+- Dây cắm và Breadboard.  
 
-## 3. Sơ đồ kết nối
-- LED → chân GPIO4 (ESP32) + điện trở hạn dòng nối về GND.
-- Nút nhấn → chân GPIO5 (ESP32), sử dụng INPUT_PULLUP.
+### Sơ đồ nối dây
+- LED → nối với **GPIO4 (ESP32)**, đầu còn lại qua điện trở xuống GND.  
+- Nút nhấn → nối với **GPIO35 (ESP32)** ở chế độ **INPUT_PULLUP**:  
+  - Một chân nối GPIO35.  
+  - Chân còn lại nối GND.  
 
-## 4. Code mẫu
-```cpp
-#include <OneButton.h>
+## 3. Phần mềm cần cài đặt
+- Visual Studio Code kèm extension **PlatformIO**.  
+- Thư viện **OneButton** cài trong PlatformIO.  
 
-#define LED_PIN 4
-#define BUTTON_PIN 5
+## 4. Các chức năng của chương trình
+- **Nhấn 1 lần**: bật/tắt LED.  
+- **Nhấn 2 lần liên tiếp**: LED chuyển sang chế độ nhấp nháy (chu kỳ 0.5 giây sáng/tắt).  
+- Khi LED đang nhấp nháy, nhấn double click lần nữa → thoát chế độ nháy, LED tắt hẳn.  
 
-OneButton button(BUTTON_PIN, true);
+## 5. Cách hoạt động
+Thư viện **OneButton** cung cấp sẵn các hàm xử lý sự kiện từ một nút bấm:  
+- `attachClick()` để xử lý nhấn 1 lần.  
+- `attachDoubleClick()` để xử lý nhấn 2 lần.  
 
-void singleClick() {
-  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-}
-
-void doubleClick() {
-  for (int i = 0; i < 5; i++) {
-    digitalWrite(LED_PIN, HIGH);
-    delay(200);
-    digitalWrite(LED_PIN, LOW);
-    delay(200);
-  }
-}
-
-void setup() {
-  pinMode(LED_PIN, OUTPUT);
-  button.attachClick(singleClick);
-  button.attachDoubleClick(doubleClick);
-}
-
-void loop() {
-  button.tick();
-}
+Chương trình sử dụng một biến trạng thái `blinking` để kiểm soát việc LED có đang nháy hay không.  
+Trong vòng lặp `loop()`, nếu `blinking = true`, LED sẽ thay đổi trạng thái sau mỗi 500ms nhờ sử dụng hàm **millis()**.
